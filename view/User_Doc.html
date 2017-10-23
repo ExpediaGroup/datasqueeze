@@ -1,0 +1,86 @@
+
+     
+<div class="container padded">
+    <h1>About</h1>
+<section>
+    <h2>Problem statement</h2>
+    <p>A small file can be defined as any file that is significantly smaller than the Hadoop block size (128MB). Small files cause longer run times and higher use of resources for hive queries thus reducing the performance drastically. 
+            By performing compaction on these files, we would optimize the resources used and reduce the longer run times for hive queries.</p>
+            <img src="img/DSCluster.png" class="img-responsive" />
+    <p>Lets assume we have a cluster of 6 nodes, 1 master and 5 slave nodes.
+            Consider folder location /foo/bar/folder contains 20 small files each of 5 MB. In the current cluster setup lets assume there will be 2 containers on each node. 
+            By default the size of the data send to each resource(splitsize) will be calculated as below</p>
+    <div class="block"><p>SplitSize = minimum(BlockSize, fileSize)</p></div>
+    <p>So this job will requires 20 mappers to process the data and if it has 2 containers on each node, it can run maximum of 10 mappers at a time in parallel. So the data will be processed in 10 + 10 = 20 mappers.</p>
+     <p>By this the splitsize is 5MB. Since the splitSize is so small we will have following issues:-</p>
+     <ul>
+         <li>Time to setup job resources will be greater than time to process the data</li>
+         <li>Unrequired parallelism on small size data set</li>
+         <li>Total processing time increases.</li>
+         <li> Namenode registers information for each file, larger the file number bigger the metadata information on Namenode thus making the cluster unstable.</li>
+     </ul>
+     <p><b>Because of all these reasons the performance degraded drastically.</b></p>            
+</section> 
+
+<section>
+        <h2>About Data Squeeze</h2>
+        <p>DataSqueeze is a compaction utility developed to compact small files.</p>
+        <h3>Features:</h3>     
+        <ul>
+             <li>DataSqueeze performs compaction on both on-Prem as well as clould AWS clusters.</li>
+             <li>File formats supported are <b>ORC, SEQUENCE</b> and <b>TEXT.</b></li>
+             <li>Compacted files retain the same compression as the input files.</li>
+             <li>It retains the directory structure of source.</li>
+             <li><img src="img/DSQDirectory.png" class="img-responsive"/>  </li> 
+             <li>It supports threshold provided by user, where files greater than the threshold value wont be compacted, but moved to the target directory as is whereas files only smaller than threshold would be compacted.</li>
+             <li>DataSqueeze supports two types of compaction.
+                 <ul>
+                     <li><b>Normal Compaction:- </b> provides source and target location. It stores compacted files on target location retaining directory structure.</li>
+                     <li><b>In-place Compaction:- </b> provides source. Copies sources files on temp folder and stores compacted files on source. </li>
+                    </ul>
+            
+            </li> 
+        </ul>  
+        
+        <div class="note-block"><p>In-place compaction is not recommended on AWS since S3 is a service and not a filesystem, thus moving and deleting files is a slow process.</p></div>
+</section>
+
+
+
+<section>
+        <h2>DataSqueeze Compaction Types</h2>
+        <div class="row">
+            <div class="col-sm-6">
+        <div class="block-text">
+        <h3>Normal Compaction</h3>     
+        <ul>
+             <li>DataSqueeze determines all the files at the source location to be compacted with a file type.</li>
+             <li>Configures mapreduce job based on the file type.</li>
+             <li>Mapper determines which files need to be compacted based on the threshold.</li>
+             <li>Shuffle and Sort method groups key value pairs based on same keys.</li>
+             <li>Reducer receives data with the same key.</li>
+             <li>Reducer determines the target location for the data based on the key and the target location provided by the user.</li>
+             <li>Required arguments:- Source path location, target path location. Optional Parameter threshold.</li>
+        </ul>
+        </div>
+            </div>
+            <div class="col-sm-6">
+        <div class="block-text">
+        <h3>In-place Compaction</h3> 
+        <ul>
+            <li>It moves source directory to the temp location provided by the user.</li>
+            <li>Then performs normal compaction which source path as temp location and target location as source location provided by the user.</li>
+            <li>Then deletes the temp directory.</li>
+            <li>Required arguments:- Source path location, temp path location. Optional Parameter threshold.</li>
+        </ul>
+        </div>
+            </div>
+        </div>
+
+        <div class="note-block"><p>In case of failure, DataSqueeze currently does not move data back to source folder from temp folder. User will have to manually move files back from temp to source folder.</p></div>
+
+             
+</section>
+</div>
+
+

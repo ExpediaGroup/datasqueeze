@@ -1,0 +1,118 @@
+
+     
+<div class="container padded">
+    <h1>Getting Started</h1>
+    <p>This guide walks through series of steps performed for compaction.</p>
+<section>
+    <div class="container">
+            <h2>DataSqueeze Manager Component</h2>
+            <h3><b>Normal Compaction(CompactionManagerImpl)</b></h3>
+            <div class="div-block">
+<div class="row">
+    <div class="col-sm-6">
+        <ul class="list-group"><li class="list-group-item"><b>Driver:-</b>
+        <ul>
+            <li>CompactionManagerImpl determines all the files at the source location to be compacted with a file type.</li>
+            <li>Configures map-reduce job based on the file type.</li>
+            <li>Text and Sequence use TextCompactionMapper and TextCompactionReducer.</li>
+            <li>ORC uses OrcCompactionMapper and OrcCompactionReducer.</li>
+            <li>It configures job to have same compression as the source files.</li>
+        </ul>
+    </li>
+
+        <li class="list-group-item"><b>Mapper:-</b>
+        <ul>
+            <li>Mapper receives key value pair and emits key value pair of file-path as the key.</li>
+            <li>Mapper determines which files need to be compacted based on the threshold.</li>
+            <li>Shuffle and Sort method groups key value pairs based on same keys.</li>
+        </ul>
+    </li>
+    <li class="list-group-item"><b>Reducer:-</b>
+        <ul>
+            <li>Reducer receives key along with list of values.</li>
+            <li>Reducer determines the target location for the data based on the key, source path and target path.</li>
+            <li>Required arguments:- Source path location, target path location. Optional Parameter threshold.</li>
+        </ul>
+    </li>
+</ul></div>
+    
+    <div class="col-sm-6">
+        <img src="img/DSCompaction1.png" class="img-responsive" />
+    </div>
+</div></div></div>
+
+<div class="container">
+        <h3><b>In-place Compaction(CompactionManagerInPlaceImpl):-</b></h3>
+        <div class="div-block">
+<div class="row">
+<div class="col-sm-6">   
+    <ul class="list-group">
+        <li class="list-group-item">It moves source directory to the temp location provided by the user.</li>
+        <li class="list-group-item">Then performs normal compaction which source path as temp location and target location as source location provided by the user.</li>
+        <li class="list-group-item">Then deletes the temp directory.</li>
+        <li class="list-group-item">Required arguments:- Source path location, temp path location. Optional Parameter threshold.</li>
+        <li class="list-group-item">In case of failure, DataSqueeze currently does not move data back to source folder from temp folder.</li>
+    </ul>
+
+</div>
+
+<div class="col-sm-6">
+    <img src="img/DSCompaction2.png" class="img-responsive" />
+</div>
+</div></div></div>  
+<h3>How to perform DataSqueeze Compaction</h3>
+<p>We can perform Compaction in two ways:-</p>
+
+<h4>Java Interface</h4>
+
+<ul>
+   <li> User has to import maven dependency for dataSqueeze in pom.xml.</li>
+    <pre><code>
+        &lt;dependency&gt; 
+            &lt;groupId&gt;com.expedia.edw.data.squeeze&lt;/groupId&gt;
+            &lt;artifactId&gt;dataSqueeze-manager&lt;/artifactId&gt;
+            &lt;version&gt;1.0&lt;/version&gt;
+            &lt;scope&gt;compile&lt;scope&gt;
+        &lt;/dependency&gt;
+    </code></pre>
+    <li>User has to retrieve CompactionManager using CompactionManagerFactory</li>
+    <pre><code>
+        final Map&lt;String, String&gt; options = new HashMap&lt;String, String&gt;();
+            options.put("sourcePath", "sourcePath");
+            options.put("targetPath", targetPath);
+            options.put("thresholdInBytes", "1234");
+            options.put("tempPath", "tempPath");
+        final CompactionManager compactionManager = CompactionManagerFactory.create(options);
+        final CompactionResponse response = compactionManager.compact();
+        </code></pre>
+</ul>
+<div class="note-block"><p>When target path is provided, dataSqueeze performs normal compaction, else performs inplace compaction.</p></div>
+ 
+
+<h3>Command Line Interface</h3>
+
+<ul class="div-block" >
+        <li> User needs to add the latest jar of dataSqueeze-manager on the box from nexus location.</li>
+        <li>User can perform compaction using the following command</li>
+        <pre><code> 
+        hadoop jar dataSqueeze-manager-1.0-SNAPSHOT.jar com.expedia.edw.data.squeeze.Utility
+        -sp s3a://edwprod/user/ysontakke/compactiontest1/ -tp s3a://edwprod/user/ysontakke/compactionoutput_text_yash_1/
+        -threshold 12345</pre></code>
+        <li>CLI uses four parameters</li>
+        <pre><code>
+        1. sp (SourcePath) - Source location for compaction
+        2. tp (TargetPath) - Target location for compaction. If target path is not provided, inplace compaction is performed
+        3. threshold - Optional field. threshold in bytes for compaction. If file size is greater then no compaction on file,
+           file is just copied to target directory. Optional parameter, if not provided defaults to 134217728 (128 MB)
+        </code></pre>
+
+</ul>
+
+<h3>Future Enhancements</h3>
+<ul>
+    <li>Support file format AVRO and SerDe.</li>
+    <li>Convert file types from one format to other.</li>
+<ul>   
+</section>
+</div>
+
