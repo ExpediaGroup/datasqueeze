@@ -35,8 +35,31 @@ DataSqueeze supports two types of compaction
         d. Move files from source to temp location. 
         e. Move files from temp-compacted location to source location specified by the user. 
         
-## Run
-There are two different ways of running Compaction Utility: 
+
+## Requirements
+
+* MacOS or Linux
+* Java 7 or later
+* Maven 3.x (for building)
+* rpmbuild (for building RPMs)
+
+## Building DataSqueeze
+
+DataSqueeze is a standard Maven project. Run the following in the project root folder:
+
+    mvn clean package
+
+The compiled JAR can be found at `dataSqueeze-manager/target/dataSqueeze-manager-{VERSION}.jar`.
+    
+To build an RPM, use the optional Maven profile `-P rpm`:
+
+    mvn clean package -P rpm
+    
+This requires `rpmbuild` to be installed, otherwise an error will occur.
+
+## Running DataSqueeze
+
+There are two different ways of running DataSqueeze: 
 
 1. CLI - 
     

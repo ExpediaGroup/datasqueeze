@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>dataSqueeze-manager</artifactId>
 
-    
+
     <properties>
         <rpm.install.dir>/opt/dataSqueeze</rpm.install.dir>
         <directory>${project.basedir}/target</directory>
@@ -118,42 +118,52 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>rpm-maven-plugin</artifactId>
-                <version>2.1.5</version>
-                <executions>
-                    <execution>
-                        <id>attach-rpm</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attached-rpm</goal>
-                        </goals>
-                        <configuration>
-                            <description>${project.description}</description>
-                            <group>Applications/Engineering</group>
-                            <targetOS>Linux</targetOS>
-                            <targetVendor>redhat</targetVendor>
-                            <defaultUsername>${rpm.install.user}</defaultUsername>
-                            <defaultGroupname>${rpm.install.group}</defaultGroupname>
-                            <defaultDirmode>775</defaultDirmode>
-                            <defaultFilemode>644</defaultFilemode>
-                            <mappings>
-                                <mapping>
-                                    <directory>${rpm.install.dir}/lib</directory>
-                                    <sources>
-                                        <source>
-                                            <location>${project.build.directory}/dataSqueeze-manager-${project.version}.jar
-                                            </location>
-                                            <destination>dataSqueeze-manager.jar</destination>
-                                        </source>
-                                    </sources>
-                                </mapping>
-                            </mappings>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>rpm</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>rpm-maven-plugin</artifactId>
+                        <version>2.1.5</version>
+                        <executions>
+                            <execution>
+                                <id>attach-rpm</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>attached-rpm</goal>
+                                </goals>
+                                <configuration>
+                                    <description>${project.description}</description>
+                                    <group>Applications/Engineering</group>
+                                    <targetOS>Linux</targetOS>
+                                    <targetVendor>redhat</targetVendor>
+                                    <defaultUsername>${rpm.install.user}</defaultUsername>
+                                    <defaultGroupname>${rpm.install.group}</defaultGroupname>
+                                    <defaultDirmode>775</defaultDirmode>
+                                    <defaultFilemode>644</defaultFilemode>
+                                    <mappings>
+                                        <mapping>
+                                            <directory>${rpm.install.dir}/lib</directory>
+                                            <sources>
+                                                <source>
+                                                    <location>
+                                                        ${project.build.directory}/dataSqueeze-manager-${project.version}.jar
+                                                    </location>
+                                                    <destination>dataSqueeze-manager.jar</destination>
+                                                </source>
+                                            </sources>
+                                        </mapping>
+                                    </mappings>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
