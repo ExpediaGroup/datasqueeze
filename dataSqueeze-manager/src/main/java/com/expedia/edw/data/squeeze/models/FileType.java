@@ -9,7 +9,7 @@ import lombok.Getter;
  */
 @Getter
 public enum FileType {
-    TEXT("text/plain"), ORC("ORC"), SEQ("SEQ");
+    TEXT("text/plain"), ORC("ORC"), SEQ("SEQ"), AVRO("AVRO");
 
     private final String value;
 

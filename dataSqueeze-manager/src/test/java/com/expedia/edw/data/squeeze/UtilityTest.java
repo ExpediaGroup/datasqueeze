@@ -50,4 +50,16 @@ public class UtilityTest {
         String[] args = {"-sp", "source/path", "-tp", "target/path", "-threshold", "1234"};
         utility.main(args);
     }
+
+    @Test
+    public void testUtilityWithMaxReducers() throws Exception {
+        String[] args = {"-sp", "source/path", "-tp", "target/path", "-maxReducers", "1234"};
+        utility.main(args);
+    }
+
+    @Test
+    public void testUtilityWithFileTypeAndSchemaPath() throws Exception {
+        String[] args = { "-sp", "source/path", "-tp", "target/path", "-fileType", "AVRO", "-schemaPath", "schema/path" };
+        utility.main(args);
+    }
 }
