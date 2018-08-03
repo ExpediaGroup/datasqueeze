@@ -22,7 +22,7 @@ public class CompactionManagerFactoryTest {
         CompactionManager compactionManager = CompactionManagerFactory.create(options);
         assertNotNull(compactionManager);
         assertTrue(compactionManager instanceof CompactionManagerImpl);
-        assertEquals(134217728L, CompactionManagerFactory.DEFAULT_THRESHOLD_IN_BYTES, 0);
+        assertConfigProperties();
     }
 
     @Test
@@ -31,7 +31,7 @@ public class CompactionManagerFactoryTest {
         CompactionManager compactionManager = CompactionManagerFactory.create(options);
         assertNotNull(compactionManager);
         assertTrue(compactionManager instanceof CompactionManagerInPlaceImpl);
-        assertEquals(134217728L, CompactionManagerFactory.DEFAULT_THRESHOLD_IN_BYTES, 0);
+        assertConfigProperties();
     }
 
     @Test
@@ -40,7 +40,7 @@ public class CompactionManagerFactoryTest {
         CompactionManager compactionManager = CompactionManagerFactory.create(options);
         assertNotNull(compactionManager);
         assertTrue(compactionManager instanceof CompactionManagerInPlaceImpl);
-        assertEquals(134217728L, CompactionManagerFactory.DEFAULT_THRESHOLD_IN_BYTES, 0);
+        assertConfigProperties();
     }
 
     @Test
@@ -49,7 +49,7 @@ public class CompactionManagerFactoryTest {
         CompactionManager compactionManager = CompactionManagerFactory.create(options);
         assertNotNull(compactionManager);
         assertTrue(compactionManager instanceof CompactionManagerInPlaceImpl);
-        assertEquals(134217728L, CompactionManagerFactory.DEFAULT_THRESHOLD_IN_BYTES, 0);
+        assertConfigProperties();
     }
 
     @Test
@@ -59,7 +59,14 @@ public class CompactionManagerFactoryTest {
         CompactionManager compactionManager = CompactionManagerFactory.create(options);
         assertNotNull(compactionManager);
         assertTrue(compactionManager instanceof CompactionManagerInPlaceImpl);
+        assertConfigProperties();
+    }
+
+    private void assertConfigProperties() {
         assertEquals(134217728L, CompactionManagerFactory.DEFAULT_THRESHOLD_IN_BYTES, 0);
+        assertEquals(2000L, CompactionManagerFactory.MAX_REDUCERS, 0);
+        assertEquals(1073741824L, CompactionManagerFactory.BYTES_PER_REDUCER, 0);
+        assertEquals("/etc/hadoop/conf/", CompactionManagerFactory.HADOOP_CONF);
     }
 
     private Map<String, String> retrieveOptions(final String targetPath) {

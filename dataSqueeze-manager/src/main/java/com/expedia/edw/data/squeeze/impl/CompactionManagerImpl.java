@@ -2,22 +2,34 @@ package com.expedia.edw.data.squeeze.impl;
 
 import com.expedia.edw.data.squeeze.CompactionManager;
 import com.expedia.edw.data.squeeze.CompactionManagerFactory;
+import com.expedia.edw.data.squeeze.SchemaSelector;
+import com.expedia.edw.data.squeeze.impl.orc.OrcCombineFileInputFormat;
+import com.expedia.edw.data.squeeze.impl.text.TextCombineFileInputFormat;
+import com.expedia.edw.data.squeeze.mappers.AvroCompactionMapper;
 import com.expedia.edw.data.squeeze.mappers.BytesWritableCompactionMapper;
 import com.expedia.edw.data.squeeze.mappers.OrcCompactionMapper;
+import com.expedia.edw.data.squeeze.mappers.SeqCompactionMapper;
 import com.expedia.edw.data.squeeze.mappers.TextCompactionMapper;
 import com.expedia.edw.data.squeeze.models.CompactionCriteria;
 import com.expedia.edw.data.squeeze.models.CompactionResponse;
+import com.expedia.edw.data.squeeze.models.FilePaths;
 import com.expedia.edw.data.squeeze.models.FileType;
+import com.expedia.edw.data.squeeze.reducers.AvroCompactionReducer;
 import com.expedia.edw.data.squeeze.reducers.BytesWritableCompactionReducer;
 import com.expedia.edw.data.squeeze.reducers.OrcCompactionReducer;
 import com.expedia.edw.data.squeeze.reducers.TextCompactionReducer;
+
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicMatchNotFoundException;
+
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.GenericRecordBuilder;
+import org.apache.avro.mapred.AvroValue;
+import org.apache.avro.mapreduce.AvroJob;
+import org.apache.avro.mapreduce.AvroKeyInputFormat;
+import org.apache.avro.mapreduce.AvroKeyOutputFormat;
 import org.apache.commons.lang3.Validate;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
@@ -25,6 +37,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -36,15 +49,14 @@ import org.apache.orc.CompressionKind;
 import org.apache.orc.OrcFile;
 import org.apache.orc.Reader;
 import org.apache.orc.mapred.OrcValue;
-import org.apache.orc.mapreduce.OrcInputFormat;
 import org.apache.orc.mapreduce.OrcOutputFormat;
+import org.json.JSONObject;
 
-import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.expedia.edw.data.squeeze.models.FileType.AVRO;
 import static com.expedia.edw.data.squeeze.models.FileType.ORC;
 
 /**
@@ -54,7 +66,7 @@ import static com.expedia.edw.data.squeeze.models.FileType.ORC;
  */
 @Slf4j
 public class CompactionManagerImpl extends BaseCompactionManagerImpl {
-
+    private static final String TEMP_OUTPUT_LOCATION = "/tmp/edw-compaction-utility-";
     private static final String NAMED_OUTPUT = "Output";
     private static final String BYTES_WRITABLE = "org.apache.hadoop.io.BytesWritable";
 
@@ -89,10 +101,25 @@ public class CompactionManagerImpl extends BaseCompactionManagerImpl {
         } else {
             fileSystem = FileSystem.get(configuration);
         }
-        final List<Path> sourceFilePaths = getAllFilePaths(new Path(criteria.getSourcePath()), fileSystem);
-        log.debug("Compacted files {}", sourceFilePaths.toString());
+        final Path sourcePath = new Path(criteria.getSourcePath());
+        final Path targetPath = new Path(criteria.getTargetPath());
+        if (!fileSystem.exists(sourcePath)) {
+            throw new IllegalStateException("Source location does not exist for compaction");
+        }
+        if (fileSystem.exists(targetPath)) {
+            throw new IllegalStateException("Target location already exists. Please provide a location that does not exist");
+        }
+        final FileManager fileManager = new FileManager(fileSystem);
+        final FilePaths allFilePaths = fileManager.getAllFilePaths(sourcePath);
 
-        final FileType fileType = getFileType(sourceFilePaths, fileSystem);
+        final List<Path> sourceFilePaths = allFilePaths.getAllFilePaths();
+        final Long numberOfReducers = fileManager.getNumberOfReducers(allFilePaths.getBytes(), criteria.getMaxReducers());
+        log.debug("Compacted files {}", sourceFilePaths.toString());
+        log.info("Compacted bytes {}", allFilePaths.getBytes());
+        log.info("Total number of reducers {}", numberOfReducers);
+        FileType fileType = getFileType(fileManager, sourceFilePaths);
+        log.info("Total number of files compacted {}", sourceFilePaths.size());
+        log.info("Average File Size {}", allFilePaths.getBytes() / sourceFilePaths.size());
         log.info("Compaction performed for input path {}, output path {}, file type {}",
                 criteria.getSourcePath(), criteria.getTargetPath(), fileType.name());
 
@@ -103,25 +130,41 @@ public class CompactionManagerImpl extends BaseCompactionManagerImpl {
         configuration.set("compactionTargetPath", criteria.getTargetPath());
         configuration.set("compactionThreshold", thresholdInBytes);
 
+        final JSONObject dataSkew = fileManager.inspectDataSkew(allFilePaths);
+        if (!dataSkew.keySet().isEmpty()) {
+            configuration.set("compactionDataSkew", dataSkew.toString());
+        }
+
+        Schema inputSchema = null;
         if (ORC == fileType) {
-            final Reader reader = OrcFile.createReader(sourceFilePaths.get(0), OrcFile.readerOptions(configuration));
+            final Reader reader = OrcFile.createReader(fileManager.getLastSourceFilePath(sourceFilePaths), OrcFile.readerOptions(configuration));
             final String schema = reader.getSchema().toString();
             log.info("ORC input file Schema " + schema);
 
             configuration.set("orc.mapred.map.output.value.schema", schema);
             configuration.set("orc.mapred.output.schema", schema);
             if (reader.getCompressionKind() != CompressionKind.NONE) {
-                configuration.set("orc.compress" , reader.getCompressionKind().name());
+                configuration.set("orc.compress", reader.getCompressionKind().name());
                 log.info("ORC Compression {}", reader.getCompressionKind());
             }
+        } else if (AVRO == fileType) {
+            SchemaSelector schemaSelector = new SchemaSelectorImpl(criteria, fileSystem);
+            String schemaStr = schemaSelector.getSchemaJSON();
+            inputSchema = new Schema.Parser().parse(schemaStr);
+            GenericRecordBuilder builder = new GenericRecordBuilder(inputSchema);
+            GenericRecord rec = builder.build();
+            configuration.set("avro.default.data.hash", String.valueOf(rec.hashCode()));
         }
 
         // Setup job configurations
         final Job job = Job.getInstance(configuration);
         job.setJarByClass(JobRunner.class);
+        job.setJobName("Compaction-Data-Squeeze");
+        job.setNumReduceTasks(numberOfReducers.intValue());
         for (final Path inputPath : sourceFilePaths) {
             FileInputFormat.addInputPath(job, inputPath);
         }
+        log.info(UUID.randomUUID().toString());
         final Path outputPath = new Path(TEMP_OUTPUT_LOCATION + UUID.randomUUID().toString());
         FileOutputFormat.setOutputPath(job, outputPath);
 
@@ -134,13 +177,13 @@ public class CompactionManagerImpl extends BaseCompactionManagerImpl {
                 job.setOutputKeyClass(NullWritable.class);
                 job.setOutputValueClass(Text.class);
                 job.setOutputFormatClass(TextOutputFormat.class);
+                job.setInputFormatClass(TextCombineFileInputFormat.class);
                 MultipleOutputs.addNamedOutput(job, NAMED_OUTPUT, TextOutputFormat.class, Text.class, Text.class);
-
+                TextCombineFileInputFormat.setMaxInputSplitSize(job, CompactionManagerFactory.DEFAULT_THRESHOLD_IN_BYTES);
                 break;
             case SEQ:
 
-
-                final  SequenceFile.Reader seqReader = new SequenceFile.Reader(configuration, SequenceFile.Reader.file(sourceFilePaths.get(0)));
+                final SequenceFile.Reader seqReader = new SequenceFile.Reader(configuration, SequenceFile.Reader.file(sourceFilePaths.get(0)));
                 if (BYTES_WRITABLE.equalsIgnoreCase(seqReader.getValueClassName())) {
                     job.setMapperClass(BytesWritableCompactionMapper.class);
                     job.setMapOutputValueClass(BytesWritable.class);
@@ -148,7 +191,7 @@ public class CompactionManagerImpl extends BaseCompactionManagerImpl {
                     job.setOutputValueClass(BytesWritable.class);
                     MultipleOutputs.addNamedOutput(job, NAMED_OUTPUT, SequenceFileOutputFormat.class, BytesWritable.class, BytesWritable.class);
                 } else {
-                    job.setMapperClass(TextCompactionMapper.class);
+                    job.setMapperClass(SeqCompactionMapper.class);
                     job.setMapOutputValueClass(Text.class);
                     job.setReducerClass(TextCompactionReducer.class);
                     job.setOutputValueClass(Text.class);
@@ -159,8 +202,6 @@ public class CompactionManagerImpl extends BaseCompactionManagerImpl {
                 job.setInputFormatClass(SequenceFileInputFormat.class);
                 job.setOutputKeyClass(NullWritable.class);
                 job.setOutputFormatClass(SequenceFileOutputFormat.class);
-                log.info("SEQ Value class type {}", seqReader.getValueClassName());
-                log.info("SEQ Key class type {}", seqReader.getValueClass());
                 if (seqReader.isCompressed()) {
                     log.info("SEQ Compression Codec {}", seqReader.getCompressionCodec().toString());
                     log.info("SEQ Compression Type {}", seqReader.getCompressionType().toString());
@@ -173,85 +214,47 @@ public class CompactionManagerImpl extends BaseCompactionManagerImpl {
                 job.setMapperClass(OrcCompactionMapper.class);
                 job.setMapOutputKeyClass(Text.class);
                 job.setMapOutputValueClass(OrcValue.class);
-                job.setInputFormatClass(OrcInputFormat.class);
+                job.setInputFormatClass(OrcCombineFileInputFormat.class);
                 job.setReducerClass(OrcCompactionReducer.class);
                 job.setOutputKeyClass(NullWritable.class);
                 job.setOutputValueClass(OrcValue.class);
                 job.setOutputFormatClass(OrcOutputFormat.class);
                 MultipleOutputs.addNamedOutput(job, NAMED_OUTPUT, OrcOutputFormat.class, NullWritable.class, OrcValue.class);
+                OrcCombineFileInputFormat.setMaxInputSplitSize(job, CompactionManagerFactory.DEFAULT_THRESHOLD_IN_BYTES);
                 break;
+            case AVRO:
+                job.setReducerClass(AvroCompactionReducer.class);
+                job.setMapperClass(AvroCompactionMapper.class);
+                job.setMapOutputKeyClass(Text.class);
+                job.setMapOutputValueClass(AvroValue.class);
+                job.setInputFormatClass(AvroKeyInputFormat.class);
+                job.setOutputFormatClass(AvroKeyOutputFormat.class);
+                AvroJob.setOutputKeySchema(job, inputSchema);
+                AvroJob.setInputKeySchema(job, inputSchema);
+                AvroJob.setMapOutputValueSchema(job, inputSchema);
+                configuration.setBoolean(MRJobConfig.MAPREDUCE_JOB_USER_CLASSPATH_FIRST, true);
+                break;
+
+
             default:
-                new IllegalStateException("Invalid File Type. Supported types TEXT, SEQ, ORC");
+                new IllegalStateException("Invalid File Type. Supported types TEXT, SEQ, ORC, AVRO");
         }
-        String[] args = {criteria.getSourcePath(), criteria.getTargetPath()};
+        String[] args = { criteria.getSourcePath(), criteria.getTargetPath() };
         final JobRunner jobRunner = new JobRunner(job);
         int res = ToolRunner.run(configuration, jobRunner, args);
         boolean success = res == 0;
         return new CompactionResponse(success, criteria.getTargetPath(), fileType);
     }
 
-    /**
-     * Retrieves list of all files to be compacted along with entire path
-     *
-     * @param sourceDirPath {@link Path} source directory path
-     * @param fileSystem    the {@link FileSystem}
-     * @return list of {@link Path}
-     * @throws IOException
-     */
-    private List<Path> getAllFilePaths(final Path sourceDirPath, final FileSystem fileSystem) throws IOException {
-        final List<Path> filePaths = new ArrayList<Path>();
-        for (final FileStatus fileStatus : fileSystem.listStatus(sourceDirPath)) {
-            if (fileStatus.isDirectory()) {
-                filePaths.addAll(getAllFilePaths(fileStatus.getPath(), fileSystem));
-            } else {
-                filePaths.add(fileStatus.getPath());
-            }
-        }
-        return filePaths;
-    }
+    private FileType getFileType(FileManager fileManager, List<Path> sourceFilePaths) throws Exception {
 
-
-    /**
-     * Determines the file type for the source path.
-     *
-     * @param sourceFilePaths list of source file paths
-     * @param fileSystem      {@link FileSystem}
-     * @return {@link FileType}
-     * @throws Exception when input file format cannot be determined and source file paths is empty.
-     */
-    private FileType getFileType(final List<Path> sourceFilePaths, FileSystem fileSystem) throws Exception {
-        if (!sourceFilePaths.isEmpty()) {
-            final FSDataInputStream fsDataInputStream = fileSystem.open(sourceFilePaths.get(0));
-            FileType fileType = null;
-            try {
-                final byte[] header = new byte[1000];
-                fsDataInputStream.read(header);
-                final byte[] magicHeader = {header[0], header[1], header[2]};
-                final String fileTypeString = new String(magicHeader);
-                log.info("File header " + fileTypeString);
-                if (FileType.ORC.toString().equals(fileTypeString)) {
-                    fileType = FileType.ORC;
-                } else if (FileType.SEQ.toString().equals(fileTypeString)) {
-                    fileType = FileType.SEQ;
-                } else {
-                    final String mimeType = Magic.getMagicMatch(header, false).getMimeType();
-                    log.info("File mime Type {}", mimeType);
-                    if (FileType.TEXT.getValue().equalsIgnoreCase(mimeType)) {
-                        log.info("name {}", FileType.TEXT.name());
-                        fileType = FileType.TEXT;
-                    }
-                }
-            } catch (MagicMatchNotFoundException e) {
-                log.info("MagicMatch failed to find file type {}", e.toString());
-            } finally {
-                fsDataInputStream.close();
-            }
-            if (null != fileType) {
-                return fileType;
-            } else {
-                throw new IllegalStateException("Input file format cannot be determined. Currently supported TEXT, ORC, SEQ");
-            }
+        FileType fileType;
+        log.info("File Type in criteria {}", (criteria.getFileType() == null) ? "Empty" : criteria.getFileType());
+        if (criteria.getFileType() == null) {
+            fileType = fileManager.getFileType(sourceFilePaths);
+        } else {
+            fileType = FileType.valueOf(criteria.getFileType());
         }
-        throw new IllegalStateException("Source Path does not have any files to compact.");
+        return fileType;
     }
 }

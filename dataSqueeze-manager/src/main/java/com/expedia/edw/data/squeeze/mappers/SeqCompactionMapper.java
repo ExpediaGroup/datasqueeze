@@ -1,19 +1,19 @@
 package com.expedia.edw.data.squeeze.mappers;
 
-import com.expedia.edw.data.squeeze.impl.CombineFileWritable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 import java.io.IOException;
 
 /**
- * Mapper class for Text and Sequence input file formats.
+ * Mapper class for Sequence input file formats.
  *
- * @author Yashraj R. Sontakke
+ * @author Sai Sharan
  */
 @Slf4j
-public class TextCompactionMapper extends Mapper<CombineFileWritable, Text, Text, Text> {
+public class SeqCompactionMapper extends Mapper<Object, Text, Text, Text> {
 
     private BaseMapper baseMapper;
 
@@ -27,12 +27,12 @@ public class TextCompactionMapper extends Mapper<CombineFileWritable, Text, Text
     /**
      * {@inheritDoc}
      */
-    protected void map(final CombineFileWritable key, final Text value, final Context context) throws IOException, InterruptedException {
+    protected void map(final Object key, final Text value, final Context context) throws IOException, InterruptedException {
         if (value != null && value.toString() != null && value.toString().isEmpty()) {
             return;
         }
-
-        final Text mapperKey = baseMapper.getKey(key.getFileName());
+        FileSplit fileSplit = (FileSplit)context.getInputSplit();
+        final Text mapperKey = baseMapper.getKey(fileSplit.getPath().toString());
         context.write(mapperKey, value);
     }
 }

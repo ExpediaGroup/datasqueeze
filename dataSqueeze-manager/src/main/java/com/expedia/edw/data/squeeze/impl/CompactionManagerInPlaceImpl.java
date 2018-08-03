@@ -54,7 +54,8 @@ public class CompactionManagerInPlaceImpl extends BaseCompactionManagerImpl {
         }
         // Perform normal compaction from Source --> TempTargetLocation
         log.info("Performing Normal Compaction from Source {} to Temp Target {}", criteria.getSourcePath(), tempCompactedLocation);
-        final CompactionCriteria compactionCriteria = new CompactionCriteria(criteria.getSourcePath(), tempCompactedLocation, criteria.getThresholdInBytes());
+        final CompactionCriteria compactionCriteria = new CompactionCriteria(criteria.getSourcePath(), tempCompactedLocation, criteria.getThresholdInBytes(),
+                criteria.getMaxReducers(), criteria.getFileType(), criteria.getSchemaPath());
         final CompactionManager compactionManager = new CompactionManagerImpl(configuration, compactionCriteria);
         final CompactionResponse response = compactionManager.compact();
 
