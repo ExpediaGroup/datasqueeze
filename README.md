@@ -1,15 +1,15 @@
 
-# DataSqueeze
+# Datasqueeze
 
 ## Overview
-DataSqueeze performs compaction of files from source directory to target directory maintaining the directory structure of the source.
+Datasqueeze performs compaction of files from source directory to target directory maintaining the directory structure of the source.
 
 ## Documentation
  This README is intended to provide detailed technical documentation for advanced users.
 
 ## General operation
 
-DataSqueeze supports two types of compaction
+Datasqueeze supports two types of compaction
 
 1. Normal Compaction - We compact files from source to target path.
 
@@ -43,13 +43,13 @@ DataSqueeze supports two types of compaction
 * Maven 3.x (for building)
 * rpmbuild (for building RPMs)
 
-## Building DataSqueeze
+## Building Datasqueeze
 
-DataSqueeze is a standard Maven project. Run the following in the project root folder:
+Datasqueeze is a standard Maven project. Run the following in the project root folder:
 
     mvn clean package
 
-The compiled JAR can be found at `dataSqueeze-manager/target/dataSqueeze-manager-{VERSION}.jar`.
+The compiled JAR can be found at `Datasqueeze/target/datasqueeze.jar`.
 
 To build an RPM, use the optional Maven profile `-P rpm`:
 
@@ -57,21 +57,21 @@ To build an RPM, use the optional Maven profile `-P rpm`:
 
 This requires `rpmbuild` to be installed, otherwise an error will occur.
 
-## Running DataSqueeze
+## Running Datasqueeze
 
-There are two different ways of running DataSqueeze:
+There are two different ways of running Datasqueeze:
 
 1. CLI -
     a. For TEXT/ORC/SEQ
     ```java
-        hadoop jar dataSqueeze-manager-1.0-SNAPSHOT.jar com.expedia.edw.data.squeeze.Utility
+        hadoop jar Datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
         -sp s3a://edwprod/user/ysontakke/compactiontest1/ -tp s3a://edwprod/user/ysontakke/compactionoutput_text_yash_1/
         -threshold 12345
     ```
 
     b. For AVRO
     ```java
-        hadoop jar dataSqueeze-manager-1.0-SNAPSHOT.jar com.expedia.edw.data.squeeze.Utility
+        hadoop jar Datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
         -sp s3a://edwprod/user/ysontakke/compactiontest1/ -tp s3a://edwprod/user/ysontakke/compactionoutput_text_yash_1/
         -threshold 12345 -fileType AVRO -schemaPath s3a://edwprod/user/ysontakke/compactionschema_text_yash_1/schema.avsc
     ```
@@ -87,7 +87,7 @@ There are two different ways of running DataSqueeze:
        * fileType - Type of file to be compacted (AVRO / TEXT / SEQ / ORC). It is mandatory for AVRO
        * schemaPath - schema used for compaction (mandatory for AVRO)
 
-2. API - [CompactionManager](dataSqueeze-manager/src/main/java/com/expedia/edw/data/squeeze/CompactionManager.java)
+2. API - [CompactionManager](Datasqueeze/src/main/java/com/expedia/dsp/data/squeeze/CompactionManager.java)
 
     ```java
         CompactionResponse compact() throws Exception;
@@ -95,14 +95,14 @@ There are two different ways of running DataSqueeze:
 
 ## Tests
 
-Currently, the tests for DataSqueeze cannot be made publicly available, but we are working on getting them open sourced.
+Currently, the tests for Datasqueeze cannot be made publicly available, but we are working on getting them open sourced.
 
 ## Contributing
 
-We gladly accept contributions to DataSqueeze in the form of issues, feature requests, and pull requests!
+We gladly accept contributions to Datasqueeze in the form of issues, feature requests, and pull requests!
 
 ## Licensing
 
 Copyright Â© 2017 Expedia, Inc.
 
-DataSqueeze is licensed under the Apache 2.0 license; refer to [LICENSE](LICENSE) for the complete text.
+Datasqueeze is licensed under the Apache 2.0 license; refer to [LICENSE](LICENSE) for the complete text.
