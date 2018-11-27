@@ -10,10 +10,11 @@ Datasqueeze performs compaction of files from source directory to target directo
 
 ## Changes since last release
 
-* Edided the pom file for publishing this project's artifacts to the Maven Central
+* Edited the pom file for publishing this project's artifacts to the Maven Central
 * Changed namespace to com.expedia.dsp
 * Renamed dataSqueeze to datasqueeze
 * Refactored code to remove the dataSqueeze-manager layer
+* Added Datasqueeze logo
 
 ## General operation
 
@@ -72,14 +73,14 @@ There are two different ways of running Datasqueeze:
 1. CLI -
     a. For TEXT/ORC/SEQ
     ```java
-        hadoop jar Datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
+        hadoop jar datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
         -sp s3a://edwprod/user/ysontakke/compactiontest1/ -tp s3a://edwprod/user/ysontakke/compactionoutput_text_yash_1/
         -threshold 12345
     ```
 
     b. For AVRO
     ```java
-        hadoop jar Datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
+        hadoop jar datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
         -sp s3a://edwprod/user/ysontakke/compactiontest1/ -tp s3a://edwprod/user/ysontakke/compactionoutput_text_yash_1/
         -threshold 12345 -fileType AVRO -schemaPath s3a://edwprod/user/ysontakke/compactionschema_text_yash_1/schema.avsc
     ```
@@ -95,7 +96,7 @@ There are two different ways of running Datasqueeze:
        * fileType - Type of file to be compacted (AVRO / TEXT / SEQ / ORC). It is mandatory for AVRO
        * schemaPath - schema used for compaction (mandatory for AVRO)
 
-2. API - [CompactionManager](Datasqueeze/src/main/java/com/expedia/dsp/data/squeeze/CompactionManager.java)
+2. API - [CompactionManager](datasqueeze/src/main/java/com/expedia/dsp/data/squeeze/CompactionManager.java)
 
     ```java
         CompactionResponse compact() throws Exception;
