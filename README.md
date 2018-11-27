@@ -27,7 +27,8 @@ DataSqueeze supports two types of compaction
         a. Fetch the source file paths to be compacted from the source path provided.
         b. Perform mapreduce job using the following configuration
             1. Mapper maps records together based on same parent directory and emits parent directory as key.
-            2. Reducer reduces records based on same key but writes data to the target directory provided by the user, retaining the directory structure.
+            2. Reducer reduces records based on same key but writes data to the target directory provided by the user, 
+               retaining the directory structure.
 
 2. In-Place Compaction - Performs compaction on the source path. This is not recommended on AWS-S3, since the performance will be terrible.
 
@@ -37,7 +38,8 @@ DataSqueeze supports two types of compaction
         a. Fetch the file paths to be compacted from the source path provided.
         b. Perform mapreduce job using the following configuration
             1. Mapper maps records together based on same parent directory and emits parent directory as key.
-            2. Reducer reduces records based on same key but writes data to the target directory provided by the user, retaining the directory structure.
+            2. Reducer reduces records based on same key but writes data to the target directory provided by the user, 
+               retaining the directory structure.
         c. Store the compacted files on temp-compacted path.
         d. Move files from source to temp location.
         e. Move files from temp-compacted location to source location specified by the user.
