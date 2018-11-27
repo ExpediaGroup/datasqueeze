@@ -1,7 +1,6 @@
-
-+<p align="center">
-+  <img src="dataSqueeze-logo.png">
-+</p>
+<p align="center">
+  <img src="dataSqueeze-logo.png">
+</p>
 
 ## Overview
 Datasqueeze performs compaction of files from source directory to target directory maintaining the directory structure of the source.
