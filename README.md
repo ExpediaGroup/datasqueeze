@@ -1,11 +1,20 @@
-
-# DataSqueeze
+<p align="center">
+  <img src="dataSqueeze-logo.png">
+</p>
 
 ## Overview
 DataSqueeze performs compaction of files from source directory to target directory maintaining the directory structure of the source.
 
 ## Documentation
  This README is intended to provide detailed technical documentation for advanced users.
+
+## Changes since last release
+
+* Edited the pom file for publishing this project's artifacts to the Maven Central
+* Changed namespace to com.expedia.dsp
+* Renamed dataSqueeze to datasqueeze
+* Refactored code to remove the dataSqueeze-manager layer
+* Added DataSqueeze logo
 
 ## General operation
 
@@ -18,19 +27,19 @@ DataSqueeze supports two types of compaction
         a. Fetch the source file paths to be compacted from the source path provided.
         b. Perform mapreduce job using the following configuration
             1. Mapper maps records together based on same parent directory and emits parent directory as key.
-            2. Reducer reduces records based on same key but writes data to the target directory provided by the user, retaining
-                the directory structure.
+            2. Reducer reduces records based on same key but writes data to the target directory provided by the user, 
+               retaining the directory structure.
 
-2. Inplace Compaction - Performs compaction on the source path. This is not recommended on AWS-S3, since the performance will be terrible.
+2. In-Place Compaction - Performs compaction on the source path. This is not recommended on AWS-S3, since the performance will be terrible.
 
-    Below is a high level summary of the steps that Compaction Utility performs during the course of a typical run for inplace compaction.
+    Below is a high level summary of the steps that Compaction Utility performs during the course of a typical run for in-place compaction.
 
 
         a. Fetch the file paths to be compacted from the source path provided.
         b. Perform mapreduce job using the following configuration
             1. Mapper maps records together based on same parent directory and emits parent directory as key.
-            2. Reducer reduces records based on same key but writes data to the target directory provided by the user, retaining
-                the directory structure.
+            2. Reducer reduces records based on same key but writes data to the target directory provided by the user, 
+               retaining the directory structure.
         c. Store the compacted files on temp-compacted path.
         d. Move files from source to temp location.
         e. Move files from temp-compacted location to source location specified by the user.
@@ -49,7 +58,7 @@ DataSqueeze is a standard Maven project. Run the following in the project root f
 
     mvn clean package
 
-The compiled JAR can be found at `dataSqueeze-manager/target/dataSqueeze-manager-{VERSION}.jar`.
+The compiled JAR can be found at `datasqueeze/target/datasqueeze.jar`.
 
 To build an RPM, use the optional Maven profile `-P rpm`:
 
@@ -64,14 +73,14 @@ There are two different ways of running DataSqueeze:
 1. CLI -
     a. For TEXT/ORC/SEQ
     ```java
-        hadoop jar dataSqueeze-manager-1.0-SNAPSHOT.jar com.expedia.edw.data.squeeze.Utility
+        hadoop jar datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
         -sp s3a://edwprod/user/ysontakke/compactiontest1/ -tp s3a://edwprod/user/ysontakke/compactionoutput_text_yash_1/
         -threshold 12345
     ```
 
     b. For AVRO
     ```java
-        hadoop jar dataSqueeze-manager-1.0-SNAPSHOT.jar com.expedia.edw.data.squeeze.Utility
+        hadoop jar datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
         -sp s3a://edwprod/user/ysontakke/compactiontest1/ -tp s3a://edwprod/user/ysontakke/compactionoutput_text_yash_1/
         -threshold 12345 -fileType AVRO -schemaPath s3a://edwprod/user/ysontakke/compactionschema_text_yash_1/schema.avsc
     ```
@@ -87,7 +96,7 @@ There are two different ways of running DataSqueeze:
        * fileType - Type of file to be compacted (AVRO / TEXT / SEQ / ORC). It is mandatory for AVRO
        * schemaPath - schema used for compaction (mandatory for AVRO)
 
-2. API - [CompactionManager](dataSqueeze-manager/src/main/java/com/expedia/edw/data/squeeze/CompactionManager.java)
+2. API - [CompactionManager](datasqueeze/src/main/java/com/expedia/dsp/data/squeeze/CompactionManager.java)
 
     ```java
         CompactionResponse compact() throws Exception;
