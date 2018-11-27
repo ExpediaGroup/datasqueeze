@@ -341,8 +341,7 @@
     <repositories>
         <repository>
             <id>central</id>
-            <name>public-maven-virtual</name>
-            <url>https://artylab.expedia.biz:443/public-maven-virtual</url>
+            <url>http://repo1.maven.org/maven2/</url>
         </repository>
     </repositories>
 
