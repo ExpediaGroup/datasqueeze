@@ -2,8 +2,13 @@
   <img src="dataSqueeze-logo.png">
 </p>
 
+# DataSqueeze
+
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.expedia.dsp/datasqueeze/badge.svg?subject=com.expedia.dsp:datasqueeze)](https://maven-badges.herokuapp.com/maven-central/com.expedia.dsp/datasqueeze) [![Build Status](https://travis-ci.com/ExpediaInceCommercePlatform/datasqueeze.svg?branch=master)](https://travis-ci.com/ExpediaInceCommercePlatform/datasqueeze) ![GitHub license](https://img.shields.io/github/license/ExpediaInceCommercePlatform/datasqueeze.svg)
+
 ## Overview
-DataSqueeze performs compaction of files from source directory to target directory maintaining the directory structure of the source.
+DataSqueeze is a Hadoop utility for compacting small files into larger files.  It copies and compacts files from a source directory to a target directory, 
+maintaining the directory structure of the source.  
 
 ## Documentation
 This README is intended to provide detailed technical documentation for advanced users.
