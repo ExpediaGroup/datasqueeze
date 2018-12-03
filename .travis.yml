@@ -1,0 +1,11 @@
+language: java
+jdk:
+- openjdk7
+os:
+- linux
+cache:
+  directories:
+    - ~/.m2/repository
+install: true
+script:
+  - mvn clean verify
