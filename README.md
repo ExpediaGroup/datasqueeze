@@ -6,15 +6,7 @@
 DataSqueeze performs compaction of files from source directory to target directory maintaining the directory structure of the source.
 
 ## Documentation
- This README is intended to provide detailed technical documentation for advanced users.
-
-## Changes since last release
-
-* Edited the pom file for publishing this project's artifacts to the Maven Central
-* Changed namespace to com.expedia.dsp
-* Renamed dataSqueeze to datasqueeze
-* Refactored code to remove the dataSqueeze-manager layer
-* Added DataSqueeze logo
+This README is intended to provide detailed technical documentation for advanced users.
 
 ## General operation
 
