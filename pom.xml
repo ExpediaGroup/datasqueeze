@@ -10,7 +10,6 @@
 
     <name>datasqueeze</name>
     <description>Hadoop utility to compact small files</description>
-    <url>https://expediaincecommerceplatform.github.io/datasqueeze/</url>
     <inceptionYear>2018</inceptionYear>
 
     <licenses>
@@ -21,28 +20,20 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/ExpediaInceCommercePlatform/datasqueeze.git</connection>
-        <developerConnection>scm:git:ssh://github.com:ExpediaInceCommercePlatform/datasqueeze.git</developerConnection>
-        <url>https://github.com/ExpediaInceCommercePlatform/datasqueeze/tree/master</url>
+        <connection>scm:git:git://github.com/ExpediaGroup]/datasqueeze.git</connection>
+        <developerConnection>scm:git:ssh://ExpediaGroup/datasqueeze.git</developerConnection>
+        <url>https://github.com/ExpediaGroup/datasqueeze/tree/master</url>
     </scm>
 
     <issueManagement>
         <system>github</system>
-        <url>https://github.com/ExpediaInceCommercePlatform/datasqueeze/issues</url>
+        <url>https://github.com/ExpediaGroup/datasqueeze/issues</url>
     </issueManagement>
 
     <organization>
         <name>Expedia Group (Data Services and Platforms)</name>
         <url>https://www.expediagroup.com/</url>
     </organization>
-
-    <developers>
-        <developer>
-            <name>Yashraj R. Sontakke</name>
-            <organization>Expedia Group (Data Services and Platforms)</organization>
-            <organizationUrl>https://www.expediagroup.com/</organizationUrl>
-        </developer>
-    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -274,7 +265,7 @@
                         <headerDefinition>resources/header-definitions.xml</headerDefinition>
                     </headerDefinitions>
                     <properties>
-                        <owner>Expedia Group</owner>
+                        <owner>Expedia, Inc.</owner>
                     </properties>
                     <includes>
                         <include>src/main/java/**</include>
@@ -434,7 +425,7 @@
     <repositories>
         <repository>
             <id>central</id>
-            <url>http://repo1.maven.org/maven2/</url>
+            <url>https://repo1.maven.org/maven2/</url>
         </repository>
     </repositories>
 
