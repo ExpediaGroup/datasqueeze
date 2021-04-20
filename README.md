@@ -95,7 +95,7 @@ There are two different ways of running DataSqueeze:
        * fileType - Type of file to be compacted (AVRO / TEXT / SEQ / ORC). It is mandatory for AVRO
        * schemaPath - schema used for compaction (mandatory for AVRO)
 
-2. API - [CompactionManager](https://github.com/ExpediaInceCommercePlatform/datasqueeze/blob/master/src/main/java/com/expedia/dsp/data/squeeze/CompactionManager.java)
+2. API - [CompactionManager](https://github.com/ExpediaGroup/datasqueeze/blob/main/src/main/java/com/expedia/dsp/data/squeeze/CompactionManager.java)
 
     ```java
         CompactionResponse compact() throws Exception;
