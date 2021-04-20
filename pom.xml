@@ -20,7 +20,7 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/ExpediaGroup]/datasqueeze.git</connection>
+        <connection>scm:git:git://github.com/ExpediaGroup/datasqueeze.git</connection>
         <developerConnection>scm:git:ssh://ExpediaGroup/datasqueeze.git</developerConnection>
         <url>https://github.com/ExpediaGroup/datasqueeze/tree/main</url>
     </scm>
