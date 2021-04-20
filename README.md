@@ -4,7 +4,9 @@
 
 # DataSqueeze
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.expedia.dsp/datasqueeze/badge.svg?subject=com.expedia.dsp:datasqueeze)](https://maven-badges.herokuapp.com/maven-central/com.expedia.dsp/datasqueeze) [![Build Status](https://travis-ci.com/ExpediaInceCommercePlatform/datasqueeze.svg?branch=master)](https://travis-ci.com/ExpediaInceCommercePlatform/datasqueeze) ![GitHub license](https://img.shields.io/github/license/ExpediaInceCommercePlatform/datasqueeze.svg)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.expedia.dsp/datasqueeze/badge.svg?subject=com.expedia.dsp:datasqueeze)](https://maven-badges.herokuapp.com/maven-central/com.expedia.dsp/datasqueeze)
+[![Build Status](https://github.com/ExpediaGroup/datasqueeze/workflows/Build/badge.svg)](https://github.com/ExpediaGroup/datasqueeze/actions?query=workflow:"Build") 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Overview
 DataSqueeze is a Hadoop utility for compacting small files into larger files.  It copies and compacts files from a source directory to a target directory, 
@@ -109,6 +111,6 @@ We gladly accept contributions to DataSqueeze in the form of issues, feature req
 
 ## Licensing
 
-Copyright © 2017 Expedia, Inc.
+Copyright © 2017-2021 Expedia, Inc.
 
 DataSqueeze is licensed under the Apache 2.0 license; refer to [LICENSE](LICENSE) for the complete text.

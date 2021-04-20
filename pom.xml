@@ -10,7 +10,7 @@
 
     <name>datasqueeze</name>
     <description>Hadoop utility to compact small files</description>
-    <inceptionYear>2018</inceptionYear>
+    <inceptionYear>2017</inceptionYear>
 
     <licenses>
         <license>
@@ -266,6 +266,7 @@
                     </headerDefinitions>
                     <properties>
                         <owner>Expedia, Inc.</owner>
+                        <currentYear>${current.year}</currentYear>
                     </properties>
                     <includes>
                         <include>src/main/java/**</include>
@@ -276,8 +277,9 @@
                 </configuration>
                 <executions>
                     <execution>
+                        <phase>validate</phase>
                         <goals>
-                            <goal>check</goal>
+                            <goal>format</goal>
                         </goals>
                     </execution>
                 </executions>
