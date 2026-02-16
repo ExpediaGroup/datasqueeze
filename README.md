@@ -72,16 +72,20 @@ There are two different ways of running DataSqueeze:
 1. CLI -
     a. For TEXT/ORC/SEQ
     ```java
-        hadoop jar datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
-        -sp s3a://edwprod/user/ysontakke/compactiontest1/ -tp s3a://edwprod/user/ysontakke/compactionoutput_text_yash_1/
-        -threshold 12345
+     hadoop jar datasqueeze.jar com.expedia.dsp.data.squeeze.Utility \
+       -sp s3a://<SOURCE_BUCKET>/<source/path>/ \
+       -tp s3a://<TARGET_BUCKET>/<target/path>/ \
+       -threshold 12345
     ```
 
     b. For AVRO
     ```java
-        hadoop jar datasqueeze.jar com.expedia.dsp.data.squeeze.Utility
-        -sp s3a://edwprod/user/ysontakke/compactiontest1/ -tp s3a://edwprod/user/ysontakke/compactionoutput_text_yash_1/
-        -threshold 12345 -fileType AVRO -schemaPath s3a://edwprod/user/ysontakke/compactionschema_text_yash_1/schema.avsc
+     hadoop jar datasqueeze.jar com.expedia.dsp.data.squeeze.Utility \
+       -sp s3a://<SOURCE_BUCKET>/<source/path>/ \
+       -tp s3a://<TARGET_BUCKET>/<target/path>/ \
+       -threshold 12345 \
+       -fileType AVRO \
+       -schemaPath s3a://<SCHEMA_BUCKET>/<schema/path>/schema.avsc
     ```
 
 
